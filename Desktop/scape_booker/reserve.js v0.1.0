@@ -1,0 +1,103 @@
+const { chromium } = require('playwright');
+
+// ── Configure these ───────────────────────────────────────────────
+const DATES = [8, 9, 10];  // days of the current month
+
+// Time slots in priority order — tries each until one is available
+const TIME_PRIORITY = ['11:00', '13:00', '15:00', '17:00', '19:00'];
+
+const CONFIG = {
+firstName:  'Hugo',
+lastName:   'a',
+roomNumber: '723',
+phone:      'a',
+email:      'microdickmicrosoft@gmail.com',
+notes:      '',
+};
+// ─────────────────────────────────────────────────────────────────
+
+(async () => {
+const browser = await chromium.launch({ headless: false });
+const page = await browser.newPage();
+
+for (const date of DATES) {
+console.log(`\nBooking day ${date}...`);
+let booked = false;
+
+for (const time of TIME_PRIORITY) {
+console.log(`  Trying ${time}...`);
+try {
+const available = await goToDateAndTryTime(page, date, time);
+if (!available) {
+console.log(`  ⏭ ${time} not available, trying next...`);
+continue;
+        }
+await fillAndSubmit(page);
+console.log(`  ✅ Booked day ${date} at ${time}`);
+booked = true;
+break;  // move to next date
+      } catch (err) {
+console.error(`  ❌ Error on ${time}:`, err.message);
+      }
+    }
+
+if (!booked) {
+console.log(`  ⚠️ No available slots found for day ${date}`);
+    }
+  }
+
+console.log('\nAll done. Closing in 5s...');
+await page.waitForTimeout(5000);
+await browser.close();
+})();
+
+async function goToDateAndTryTime(page, day, time) {
+await page.goto('https://www.picktime.com/scapebooking?lang=en#book/services');
+
+// Dismiss welcome popup if it appears
+const closeBtn = page.getByRole('button', { name: 'Close' });
+if (await closeBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+await closeBtn.click();
+  }
+
+// Select Study Pod 2
+await page.locator('div:nth-child(2) > .accordion > .service-details-box > .service-details-right').click();
+await page.getByRole('heading', { name: 'Study Pod', description: 'Study Pod 2' }).click();
+
+// Pick the date
+await page.getByRole('link', { name: String(day), exact: true }).click();
+
+// Build the garbled selector Picktime uses e.g. '13:00' → ':0013:00'
+const picktimeTime = `:00${time}`;
+const slot = page.getByText(picktimeTime);
+const isVisible = await slot.isVisible({ timeout: 2000 }).catch(() => false);
+if (!isVisible) return false;
+
+// Check if it's already booked (has a checkmark, i.e. selected/disabled state)
+const isBooked = await slot.evaluate(el => {
+const parent = el.closest('div, button');
+return parent?.classList.contains('disabled') ||
+parent?.classList.contains('booked') ||
+parent?.querySelector('.checkmark, .tick, svg') !== null;
+  }).catch(() => false);
+
+if (isBooked) return false;
+
+await slot.click();
+return true;
+}
+
+async function fillAndSubmit(page) {
+await page.getByRole('textbox').nth(0).fill(CONFIG.firstName);
+await page.getByRole('textbox').nth(1).fill(CONFIG.lastName);
+await page.getByRole('textbox').nth(2).fill(CONFIG.roomNumber);
+await page.getByRole('textbox').nth(3).fill(CONFIG.phone);
+await page.getByRole('textbox').nth(4).fill(CONFIG.email);
+
+if (CONFIG.notes) {
+await page.locator('textarea').fill(CONFIG.notes);
+  }
+
+await page.getByRole('button', { name: 'Book Appointment' }).click();
+await page.waitForURL('**/confirmation', { timeout: 10000 });
+}
