@@ -1,11 +1,11 @@
 const { chromium } = require('playwright');
 
 // ── Configure these ───────────────────────────────────────────────
-const DATES = [28];  // days of the current month
+const DATES = [29];  // days of the current month
 
 // Time slots in priority order — tries each until one is available
 // const TIME_PRIORITY = ['11:00', '13:00', '15:00', '17:00', '19:00'];
-const TIME_PRIORITY = ['7:00', '9:00'];
+const TIME_PRIORITY = ['07:00'];
 
 const CONFIG = {
   firstName:  'Hugo',
@@ -58,11 +58,9 @@ const SLOT_NTH = {
     for (const time of TIME_PRIORITY) {
       console.log(`  Trying ${time}...`);
       try {
-        const prefix = time.slice(0, 3); // '13:00' → '13:'
-        const nth    = SLOT_NTH[time] ?? 0;
-        const slot   = page.getByText(prefix).nth(nth);
+        const slot = page.locator('span.slot-time', { hasText: new RegExp(`^${time}$`) });
 
-        const visible = await slot.isVisible({ timeout: 200000 }).catch(() => false);
+        const visible = await slot.isVisible({ timeout: 2000 }).catch(() => false);
         if (!visible) {
           console.log(`  ⏭ ${time} not available, trying next...`);
           continue;
@@ -83,11 +81,10 @@ const SLOT_NTH = {
         // Wait for service list to be ready again before next loop iteration
         await page.locator('div:nth-child(2) > .accordion > .service-details-box').waitFor({ timeout: 1000000 });
         break;
-      } catch (err) {
-        console.error(`  ❌ Error on ${time}:`, err.message);
-      }
+        } catch (err) {
+          console.error(`  ❌ Error on ${time}:`, err.message);
+        }
     }
-
     if (!booked) {
       console.log(`  ⚠️ No available slots found for day ${date}`);
       // Still need to get back to service list if we never booked
