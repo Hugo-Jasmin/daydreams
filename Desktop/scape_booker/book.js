@@ -5,7 +5,7 @@ const DATES = [29];  // days of the current month
 
 // Time slots in priority order — tries each until one is available
 // const TIME_PRIORITY = ['11:00', '13:00', '15:00', '17:00', '19:00'];
-const TIME_PRIORITY = ['07:00'];
+const TIME_PRIORITY = ['15:00','17:00'];
 
 const CONFIG = {
   firstName:  'Hugo',
@@ -42,21 +42,20 @@ const SLOT_NTH = {
 
   for (const date of DATES) {
     console.log(`\nBooking day ${date}...`);
-    let booked = false;
-
-    // ── From the service list: pick Study Pod 2 ──────────────────
-    await page.locator('div:nth-child(2) > .accordion > .service-details-box').click();
-    await page.getByRole('heading', { name: 'Study Pod', description: 'Study Pod 2' }).click();
-
-    // Pick the date
-    await page.getByRole('link', { name: String(date), exact: true }).click();
-
-    // Wait for time slots to render
-    await page.waitForTimeout(1500);
+    let booked = false;   //
 
     // ── Try each time slot ────────────────────────────────────────
     for (const time of TIME_PRIORITY) {
       console.log(`  Trying ${time}...`);
+      // ── From the service list: pick Study Pod 2 ──────────────────
+      await page.locator('div:nth-child(2) > .accordion > .service-details-box').click();
+      await page.getByRole('heading', { name: 'Study Pod', description: 'Study Pod 2' }).click();
+
+      // Pick the date
+      await page.getByRole('link', { name: String(date), exact: true }).click();
+
+      // Wait for time slots to render
+      await page.waitForTimeout(1500);
       try {
         const slot = page.locator('span.slot-time', { hasText: new RegExp(`^${time}$`) });
 
@@ -80,7 +79,6 @@ const SLOT_NTH = {
 
         // Wait for service list to be ready again before next loop iteration
         await page.locator('div:nth-child(2) > .accordion > .service-details-box').waitFor({ timeout: 1000000 });
-        break;
         } catch (err) {
           console.error(`  ❌ Error on ${time}:`, err.message);
         }
