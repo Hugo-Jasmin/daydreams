@@ -1,7 +1,7 @@
 const { chromium } = require('playwright');
 
 // ── Configure these ───────────────────────────────────────────────
-const DATES = [10];  // days of the current month
+const DATES = [28];  // days of the current month
 
 // Time slots in priority order — tries each until one is available
 // const TIME_PRIORITY = ['11:00', '13:00', '15:00', '17:00', '19:00'];
@@ -16,12 +16,12 @@ const CONFIG = {
   notes:      '',
 };
 
-// .first() = nth(0), adjust if codegen gave different indices
+// .first() = nth(0), adjust if codegen gave different indices, nth just mean for this element what is the amount of times its been seen nth time of
 const SLOT_NTH = {
-  '7:00':  0,
-  '9:00':  0,
-  '11:00': 0,
-  '13:00': 2,
+  '7:00':  5,
+  '9:00':  4,
+  '11:00': 4,
+  '13:00': 4,
   '15:00': 0,
   '17:00': 0,
   '19:00': 0,
@@ -29,7 +29,7 @@ const SLOT_NTH = {
 // ─────────────────────────────────────────────────────────────────
 
 (async () => {
-  const browser = await chromium.launch({ headless: false });
+  const browser = await chromium.launch({ headless: false }); //headless: false just means browser is visible, headless: true means browser is hidden
   const page    = await browser.newPage();
 
   // ── Initial navigation & popup dismissal (once only) ──────────
@@ -38,7 +38,7 @@ const SLOT_NTH = {
   const closeBtn = page.getByRole('button', { name: 'Close' });
   if (await closeBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
     await closeBtn.click();
-  }
+  } //closeBtn is a locator for finding an element (a button named "Close") on the page.
 
   for (const date of DATES) {
     console.log(`\nBooking day ${date}...`);
