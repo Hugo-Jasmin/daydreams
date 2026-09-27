@@ -1,11 +1,11 @@
 const { chromium } = require('playwright');
 
 // ── Configure these ───────────────────────────────────────────────
-const DATES = [29];  // days of the current month
+const DATES = [28,30];  // days of the current month
 
 // Time slots in priority order — tries each until one is available
 // const TIME_PRIORITY = ['11:00', '13:00', '15:00', '17:00', '19:00'];
-const TIME_PRIORITY = ['15:00','17:00'];
+const TIME_PRIORITY = ['09:00'];
 
 const CONFIG = {
   firstName:  'Hugo',
@@ -15,18 +15,6 @@ const CONFIG = {
   email:      'microdickmicrosoft@gmail.com',
   notes:      '',
 };
-
-// .first() = nth(0), adjust if codegen gave different indices, nth just mean for this element what is the amount of times its been seen nth time of
-const SLOT_NTH = {
-  '7:00':  5,
-  '9:00':  4,
-  '11:00': 4,
-  '13:00': 4,
-  '15:00': 0,
-  '17:00': 0,
-  '19:00': 0,
-};
-// ─────────────────────────────────────────────────────────────────
 
 (async () => {
   const browser = await chromium.launch({ headless: false }); //headless: false just means browser is visible, headless: true means browser is hidden
@@ -81,6 +69,7 @@ const SLOT_NTH = {
         await page.locator('div:nth-child(2) > .accordion > .service-details-box').waitFor({ timeout: 1000000 });
         } catch (err) {
           console.error(`  ❌ Error on ${time}:`, err.message);
+          continue;
         }
     }
     if (!booked) {
