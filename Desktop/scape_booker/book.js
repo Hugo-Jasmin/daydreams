@@ -1,18 +1,18 @@
 const { chromium } = require('playwright');
 
 // ── Configure these ───────────────────────────────────────────────
-const DATES = [28,30];  // days of the current month
+const DATES = [11];  // days of the current month
 
 // Time slots in priority order — tries each until one is available
 // const TIME_PRIORITY = ['11:00', '13:00', '15:00', '17:00', '19:00'];
-const TIME_PRIORITY = ['09:00'];
+const TIME_PRIORITY = ['11:00', '13:00', '15:00', '17:00', '19:00'];
 
 const CONFIG = {
   firstName:  'Hugo',
   lastName:   'a',
-  roomNumber: '723',
-  phone:      'a',
-  email:      'microdickmicrosoft@gmail.com',
+  roomNumber: 'microdickmicrosoft@gmail.com',
+  phone:      '1232',
+  email:      '723',
   notes:      '',
 };
 
